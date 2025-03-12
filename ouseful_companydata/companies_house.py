@@ -2,11 +2,10 @@ import json
 import base64
 from urllib.parse import urlencode
 import requests
-from time import sleep
 import os
 import sqlite3
 import networkx as nx
-
+import time
 import chart_studio.plotly as py
 import plotly.graph_objects as go
 
@@ -51,10 +50,12 @@ class CompaniesHouseAPI:
         """Set the API token after initialization"""
         self.api_token = api_token
 
-    def _url_nice_req(self, url, headers=None, timeout=300):
+    def _url_nice_req(self, url, headers=None, timeout=300, be_nice=0.1):
         """Makes a request with rate limiting handling"""
+        if be_nice>0:
+            time.sleep(be_nice)
         try:
-            return requests.get(url, headers=headers, timeout=timeout)
+            return self.session.get(url, headers=headers, timeout=timeout)
         except requests.exceptions.RequestException as e:
             if hasattr(e.response, "status_code") and e.response.status_code == 429:
                 print("Overloaded API, resting for a bit...")
@@ -539,7 +540,7 @@ class CompaniesHouseAPI:
             ooo = self.ch_getAppointments(oid, typ=typ, role=role)
             # apiNice()
             # Play nice with the api
-            sleep(0.5)
+            time.sleep(0.5)
             # add company details
             x = [
                 {
